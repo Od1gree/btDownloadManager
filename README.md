@@ -2,8 +2,12 @@
 
 # btDownloadManager
 A python script to manage qBittorrent.
+
+## Feature
+* Anti-leech
+
 Currently the script is able to ban peers according to client name.
-> It is widely known that '-XL0012-' and 'Xunlei 0.0.x.x' are bad leecher.
+> It is widely known that '-XL0012-' and 'Xunlei 0.0.x.x' are bad leecher. 
 They only download files and never contribute to torrent network.
 
 ## Requirements
@@ -21,6 +25,7 @@ They only download files and never contribute to torrent network.
 ## Params
 * `-u`: url of service, default=`localhost`
 * `-p`: port of service, default=`8080`
+* `-f`: customize filter list, each line contains a string. Defaule=`None`, i.e. use default filter list.
 * `-a`: time interval to Get the torrent list in seconds, default=`300`
 * `-b`: time interval to Get the peers list in seconds, default=`10`
 
@@ -29,9 +34,13 @@ I suggest the `-a` value is N times of `-b` value, N is an integer bigger than 2
 
 # btDownloadManager
 一个管理qBittorrent的脚本
-这个脚本目前用于封禁迅雷链接
+
+## 特性
+* 反吸血
+
+这个脚本目前用于封禁迅雷种子下载请求
 > 众所周知，迅雷下载BT种子时只下载不上传，无益于种子社区的活性，因此给迅雷客户端提供上传不仅没有意义而且占用自己的带宽。
-迅雷的标识符为'-XL0012-' 和 'Xunlei 0.0.x.x'.
+>迅雷的标识符为'-XL0012-' 和 'Xunlei 0.0.x.x'.
 
 ## 运行要求
 * `python 3.6`
@@ -48,8 +57,13 @@ I suggest the `-a` value is N times of `-b` value, N is an integer bigger than 2
 ## 参数解释
 * `-u`: 自定义ip地址, 默认=`localhost`
 * `-p`: 自定义端口, 默认=`8080`
+* `-f`: 使用自定义的过滤列表,每行一个字符串,不填的话使用内置默认过滤列表. 默认=`None`.
 * `-a`: 获取种子列表的时间间隔, 默认=`300`
 * `-b`: 获取peers的时间间隔, 默认=`10`
 
 由于种子的列表不经常改变，所以可以适当增加获取间隔.
 建议 `-a` 的值是 `-b` 值的整数倍，且整数大于2.
+
+简单的介绍视频:
+
+https://www.bilibili.com/video/av81290334/

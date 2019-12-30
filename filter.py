@@ -14,6 +14,11 @@ import argparse
 
 
 def _get_url(url) -> str:
+    """
+    send HTTP GET request to server
+    :param url: the domain name + port number + api path
+    :return: result in a string.
+    """
     user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) ' \
                  'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36'
 
@@ -40,11 +45,19 @@ def _post_url(url, content):
     request.urlopen(request.Request(url, str.encode(content)))
 
 
-class IpFilter:
+class ClientFilter:
 
-    def __init__(self, url='localhost', port=8080):
+    def __init__(self, url='localhost', port=8080, file=None):
         self.torrents_dict = {}
         self.url_port = "http://" + url + ":" + str(port)
+        self.string_list = []
+        if file is not None:
+            filter_file = open(file, "rt")
+            for line in filter_file:
+                self.string_list.append(line)
+        else:
+            self.string_list = ['XL0012', 'Xunlei']
+
         print('connecting to server ' + self.url_port)
 
     def get_torrent_list(self):
@@ -64,7 +77,7 @@ class IpFilter:
             if self.torrents_dict[item]['num_leechs'] > 0:
                 peers = json.loads(self._get_peers_list(item))['peers']
                 for ip_port in peers:
-                    for xl in ['XL0012', 'Xunlei']:
+                    for xl in self.string_list:
                         if xl in peers[ip_port]['client']:
                             banned_ip_str += '\n'
                             banned_ip_str += peers[ip_port]['ip']
@@ -98,11 +111,17 @@ class IpFilter:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Ban Xunlei peers in qBittorrent connections.',
                                      epilog='eg: python3 filter.py -u localhost -p 8080 -a 300 -b 10')
-    parser.add_argument('-u', default='localhost', help='url of the service without \'http://\'')
-    parser.add_argument('-p', default=8080, type=int, help='port number. default=8080')
-    parser.add_argument('-a', default=300,  type=int, help='time interval to fetch torrents list in seconds. default=300')
-    parser.add_argument('-b', default=10,   type=int, help='time interval to fetch peers list in seconds. default=10')
+    parser.add_argument('-u', default='localhost',
+                        help='url of the service without \'http://\'')
+    parser.add_argument('-p', default=8080, type=int,
+                        help='port number. default=8080')
+    parser.add_argument('-a', default=300,  type=int,
+                        help='time interval to fetch torrents list in seconds. default=300')
+    parser.add_argument('-b', default=10,   type=int,
+                        help='time interval to fetch peers list in seconds. default=10')
+    parser.add_argument('-f', default=None, type=str,
+                        help='path to the string-filter file. Each line contains a string. Default=None')
 
     config = parser.parse_args()
-    f = IpFilter(url=config.u, port=config.p)
+    f = ClientFilter(url=config.u, port=config.p, file=config.f)
     f.start(torrent_time_cycle=config.a, filter_time_cycle=config.b)
