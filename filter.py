@@ -28,7 +28,13 @@ def _get_url(url) -> str:
                'Accept': '*/*'}
 
     req = request.Request(url, headers=headers)
-    resp = request.urlopen(req)
+    resp = None
+    try:
+        resp = request.urlopen(req)
+    except Exception as e:
+        print(str(e) + '\nFailed: Wrong URL or qBittorrent Web UI server not started.')
+        exit(0)
+
 
     test = resp.read()
     return test.decode('ascii', 'ignore')
@@ -51,12 +57,16 @@ class ClientFilter:
         self.torrents_dict = {}
         self.url_port = "http://" + url + ":" + str(port)
         self.string_list = []
-        if file is not None:
-            filter_file = open(file, "rt")
-            for line in filter_file:
-                self.string_list.append(line)
+        try:
+            if file is not None:
+                filter_file = open(file, "rt")
+                for line in filter_file:
+                    self.string_list.append(line)
+        except Exception as e:
+            print(str(e) + "\n input File error")
+            exit(0)
         else:
-            self.string_list = ['XL0012', 'Xunlei']
+            self.string_list = ['XL0012', 'Xunlei', 'dandan']
 
         print('connecting to server ' + self.url_port)
 
@@ -82,8 +92,8 @@ class ClientFilter:
                             banned_ip_str += '\n'
                             banned_ip_str += peers[ip_port]['ip']
                             time_str = time.strftime("[%Y-%m-%d %H:%M:%S] ", time.localtime())
-                            print(time_str + peers[ip_port]['ip']
-                                  + ' has been deleted due to client name:' + peers[ip_port]['client'])
+                            print(str.encode(time_str + 'banned ' + peers[ip_port]['ip']
+                                  + ' client name:' + peers[ip_port]['client']))
 
         _post_url(self.url_port + "/api/v2/app/setPreferences", "json={\"banned_IPs\":\"" + banned_ip_str + "\"}")
 
@@ -98,6 +108,11 @@ class ClientFilter:
         :param filter_time_cycle: Time interval to check the peers.
         :return: none
         """
+        try:
+            assert torrent_time_cycle > filter_time_cycle > 0
+        except Exception as e:
+            print(str(e) + '\nWrong time cycle')
+            exit(0)
 
         print('torrent time interval is ' + str(torrent_time_cycle))
         print('filter time interval is ' + str(filter_time_cycle))
