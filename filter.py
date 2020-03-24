@@ -11,7 +11,10 @@ import json
 import sys
 import time
 import argparse
+import ssl
 
+ssl._create_default_https_context = ssl._create_unverified_context
+#Disable certificate verification
 
 def _get_url(url) -> str:
     """
@@ -52,9 +55,12 @@ def _post_url(url, content):
 
 class ClientFilter:
 
-    def __init__(self, url='localhost', port=8080, file=None):
+    def __init__(self, url='localhost', port=8080, file=None, https=False):
         self.torrents_dict = {}
-        self.url_port = "http://" + url + ":" + str(port)
+        if https:
+            self.url_port = "https://" + url + ":" + str(port)
+        else:
+            self.url_port = "http://" + url + ":" + str(port)
         self.string_list = []
         self.config_json = None
         try:
@@ -67,6 +73,7 @@ class ClientFilter:
             exit(0)
         else:
             self.string_list = ['XL0012', 'Xunlei', 'dandan']
+            #self.string_list = ['XL0012', 'Xunlei', 'dandan', 'Xfplay']
 
         print('connecting to server ' + self.url_port)
 
@@ -129,16 +136,18 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Ban Xunlei peers in qBittorrent connections.',
                                      epilog='eg: python3 filter.py -u localhost -p 8080 -a 300 -b 10')
     parser.add_argument('-u', default='localhost',
-                        help='url of the service without \'http://\'')
+                        help='url of the service without \'http://\' or \'https://\'')
     parser.add_argument('-p', default=8080, type=int,
-                        help='port number. default=8080')
+                        help='port number. Default=8080')
     parser.add_argument('-a', default=300,  type=int,
-                        help='time interval to fetch torrents list in seconds. default=300')
+                        help='time interval to fetch torrents list in seconds. Default=300')
     parser.add_argument('-b', default=10,   type=int,
-                        help='time interval to fetch peers list in seconds. default=10')
+                        help='time interval to fetch peers list in seconds. Default=10')
     parser.add_argument('-f', default=None, type=str,
                         help='path to the string-filter file. Each line contains a string. Default=None')
-
+    parser.add_argument('-s', default=False, action="store_true",
+                        help='use https protocol. Default=http')
+    
     config = parser.parse_args()
-    f = ClientFilter(url=config.u, port=config.p, file=config.f)
+    f = ClientFilter(url=config.u, port=config.p, file=config.f, https=config.s)
     f.start(torrent_time_cycle=config.a, filter_time_cycle=config.b)

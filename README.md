@@ -28,6 +28,7 @@ They only download files and never contribute to torrent network.
 * `-f`: customize filter list, each line contains a string. Defaule=`None`, i.e. use default filter list.
 * `-a`: time interval to Get the torrent list in seconds, default=`300`
 * `-b`: time interval to Get the peers list in seconds, default=`10`
+* `-s`: use https to connect webui.
 
 The frequency of changing the torrent list is low, so we can set longer time interval to get torrent list.
 I suggest the `-a` value is N times of `-b` value, N is an integer bigger than 2.
@@ -58,8 +59,9 @@ I suggest the `-a` value is N times of `-b` value, N is an integer bigger than 2
 * `-u`: 自定义ip地址, 默认=`localhost`
 * `-p`: 自定义端口, 默认=`8080`
 * `-f`: 使用自定义的过滤列表,每行一个字符串,不填的话使用内置默认过滤列表. 默认=`None`.
-* `-a`: 获取种子列表的时间间隔, 默认=`300`
-* `-b`: 获取peers的时间间隔, 默认=`10`
+* `-a`: 获取种子列表的时间间隔,单位秒, 默认=`300`
+* `-b`: 获取peers的时间间隔,单位秒, 默认=`10`
+* `-s`: 使用https连接webui, 不添加该参数默认使用http
 
 由于种子的列表不经常改变，所以可以适当增加获取间隔.
 建议 `-a` 的值是 `-b` 值的整数倍，且整数大于2.
