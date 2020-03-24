@@ -63,7 +63,3 @@ I suggest the `-a` value is N times of `-b` value, N is an integer bigger than 2
 
 由于种子的列表不经常改变，所以可以适当增加获取间隔.
 建议 `-a` 的值是 `-b` 值的整数倍，且整数大于2.
-
-简单的介绍视频:
-
-https://www.bilibili.com/video/av81290334/
