@@ -35,7 +35,6 @@ def _get_url(url) -> str:
         print(str(e) + '\nFailed: Wrong URL or qBittorrent Web UI server not started.')
         exit(0)
 
-
     test = resp.read()
     return test.decode('ascii', 'ignore')
 
@@ -57,6 +56,7 @@ class ClientFilter:
         self.torrents_dict = {}
         self.url_port = "http://" + url + ":" + str(port)
         self.string_list = []
+        self.config_json = None
         try:
             if file is not None:
                 filter_file = open(file, "rt")
@@ -81,7 +81,8 @@ class ClientFilter:
         Get all the connected peers using torrent hash list and ban the matched peer.
         """
         # the banned_ip value is ip address string split with '\n'
-        banned_ip_str = json.loads(_get_url(self.url_port + "/api/v2/app/preferences"))["banned_IPs"]
+        self.config_json = json.loads(_get_url(self.url_port + "/api/v2/app/preferences"))
+        banned_ip_str = self.config_json["banned_IPs"]
 
         for item in self.torrents_dict:
             if self.torrents_dict[item]['num_leechs'] > 0:
@@ -95,7 +96,8 @@ class ClientFilter:
                             print(str.encode(time_str + 'banned ' + peers[ip_port]['ip']
                                   + ' client name:' + peers[ip_port]['client']))
 
-        _post_url(self.url_port + "/api/v2/app/setPreferences", "json={\"banned_IPs\":\"" + banned_ip_str + "\"}")
+        self.config_json['banned_IPs'] = banned_ip_str
+        _post_url(self.url_port + "/api/v2/app/setPreferences", 'json=' + json.dumps(self.config_json))
 
     def _get_peers_list(self, torrent_hash):
         server_url = self.url_port + "/api/v2/sync/torrentPeers?rid=0&hash=" + torrent_hash
