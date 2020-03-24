@@ -138,7 +138,7 @@ if __name__ == '__main__':
     parser.add_argument('-u', default='localhost',
                         help='url of the service without \'http://\' or \'https://\'')
     parser.add_argument('-p', default=8080, type=int,
-                        help='port number. default=8080')
+                        help='port number. Default=8080')
     parser.add_argument('-a', default=300,  type=int,
                         help='time interval to fetch torrents list in seconds. Default=300')
     parser.add_argument('-b', default=10,   type=int,
