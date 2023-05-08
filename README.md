@@ -33,6 +33,15 @@ They only download files and never contribute to torrent network.
 The frequency of changing the torrent list is low, so we can set longer time interval to get torrent list.
 I suggest the `-a` value is N times of `-b` value, N is an integer bigger than 2.
 
+## Another python to clean up the "Banned IP Addresses" list
+
+Over time the `filter.py` will keep populating the "Banned IP Addresses" list with more and more entires.
+`clear_qbittorrent.py` helps with over-populating by simply emptying the list.
+
+NOTE:  Running the script will unconditionally clean up the list, including anything thay may have been manually added before !
+
+Run the script by doing `python3 clear_qbittorrent.py -u localhost -p 8080`.
+
 # btDownloadManager
 一个管理qBittorrent的脚本
 
