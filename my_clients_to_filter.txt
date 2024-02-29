@@ -1,6 +1,5 @@
-anacrolix
 Thunder
 XL0012
 Xunlei
 danda
-Xfplay
+anacrolix/torrent (devel) (anacrolix/torrent unknown)
