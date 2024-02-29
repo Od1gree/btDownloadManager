@@ -7,7 +7,7 @@ A python script to manage qBittorrent.
 * Anti-leech
 
 Currently the script is able to ban peers according to client name.
-> It is widely known that '-XL0012-' and 'Xunlei 0.0.x.x' are bad leecher. 
+> It is widely known that '-XL0012-' and 'Xunlei 0.0.x.x' are bad leechers. 
 They only download files and never contribute to torrent network.
 
 ## Requirements
