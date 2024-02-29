@@ -148,7 +148,6 @@ class ClientFilter:
             print('-x is set: blocks clients regardless of leeching status')
         i_cycle_clear = 0
         i_cycle_filter = 0
-        t_old = t()
         while True:
             if clear_time_cycle and t() > (i_cycle_clear + 1) * clear_time_cycle:
                 self.clear_banned_ip_list()
@@ -159,9 +158,6 @@ class ClientFilter:
             t_cycle_remaining = i_cycle_filter * filter_time_cycle - t()
             if t_cycle_remaining > 0:
                 time.sleep(t_cycle_remaining)
-            t_new = t()
-            print(t_new-t_old)
-            t_old = t()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Ban bad peers in qBittorrent connections.',
