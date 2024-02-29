@@ -105,8 +105,6 @@ class ClientFilter:
                 peers = json.loads(self._get_peers_list(item))['peers']
                 for ip_port in peers:
                     for xl in self.string_list:
-                        if xl == 'anacrolix':
-                            xx=0
                         if xl in peers[ip_port]['client']:
                             banned_ip_str += '\n'
                             banned_ip_str += peers[ip_port]['ip']
