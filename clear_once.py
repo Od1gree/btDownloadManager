@@ -54,7 +54,6 @@ def _post_url(url, content):
 class ClearBannedIPsList:
 
     def __init__(self, url='localhost', port=8080, file=None, https=False):
-        self.torrents_to_check = {}
         if https:
             self.url_port = "https://" + url + ":" + str(port)
         else:
@@ -71,7 +70,6 @@ class ClearBannedIPsList:
             exit(0)
         else:
             self.string_list = ['XL0012', 'Xunlei', 'dandan']
-            #self.string_list = ['XL0012', 'Xunlei', 'dandan', 'Xfplay']
 
     def run(self):
         print('connecting to server ' + self.url_port)
