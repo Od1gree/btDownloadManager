@@ -10,6 +10,7 @@ from urllib import request
 import json
 import sys
 import time
+import datetime
 import argparse
 import ssl
 
@@ -63,14 +64,14 @@ class ClientFilter:
             self.url_port = "http://" + url + ":" + str(port)
         self.string_list = []
         self.config_json = None
-        try:
-            if file is not None:
+        if file:
+            try:
                 filter_file = open(file, "rt")
                 for line in filter_file:
-                    self.string_list.append(line)
-        except Exception as e:
-            print(str(e) + "\n input File error")
-            exit(0)
+                    self.string_list.append(line.strip())
+            except Exception as e:
+                print(str(e) + "\n input File error")
+                exit(0)
         else:
             self.string_list = ['XL0012', 'Xunlei', 'dandan']
             #self.string_list = ['XL0012', 'Xunlei', 'dandan', 'Xfplay']
@@ -82,6 +83,14 @@ class ClientFilter:
         torrents_str = _get_url(server_url)
         obj = json.loads(torrents_str)
         self.torrents_dict = obj['torrents']
+
+    def clear_banned_ip_list(self):
+        '''Code by Sam'''
+        self.config_json = json.loads(_get_url(self.url_port + "/api/v2/app/preferences"))
+        banned_ip_str = ''
+        self.config_json['banned_IPs'] = banned_ip_str
+        _post_url(self.url_port + "/api/v2/app/setPreferences", 'json=' + json.dumps(self.config_json))
+        print('Cleared all banned IPs from qBittorrent')
 
     def filter(self):
         """
@@ -110,31 +119,49 @@ class ClientFilter:
         server_url = self.url_port + "/api/v2/sync/torrentPeers?rid=0&hash=" + torrent_hash
         return _get_url(server_url)
 
-    def start(self, torrent_time_cycle=300, filter_time_cycle=10):
+    def start(self, torrent_time_cycle=300, filter_time_cycle=10, clear_hours=None):
         """
         Run a while true loop to ban matched ip with certain time interval.
-        :param torrent_time_cycle: Time interval to check the torrent list.
-        :param filter_time_cycle: Time interval to check the peers.
+        :param torrent_time_cycle: Time interval in sec to check the torrent list.
+        :param filter_time_cycle: Time interval in sec to check the peers.
+        :param clear_hours: Time interval in hours (can be decimal) to clear the banned IP list.
         :return: none
         """
-        try:
-            assert torrent_time_cycle > filter_time_cycle > 0
-        except Exception as e:
-            print(str(e) + '\nWrong time cycle')
-            exit(0)
+        start_time = time.perf_counter()
+        def t():
+            return round(time.perf_counter() - start_time, 1)
 
-        print('torrent time interval is ' + str(torrent_time_cycle))
-        print('filter time interval is ' + str(filter_time_cycle))
+        print('torrent time interval is {} sec'.format(torrent_time_cycle))
+        print('filter time interval is {} sec'.format(filter_time_cycle))
+
+        clear_time_cycle = None
+        if clear_hours:
+            clear_time_cycle = clear_hours * 3600
+            if int(clear_hours) > 2: digits = 0
+            elif int(clear_hours) > 1: digits = 1
+            else: digits = 3
+            print('clear time interval is {} hr'.format(round(clear_hours,digits)))
+
+        i_cycle_torrent = 0
+        i_cycle_clear = 0
+        i_cycle_filter = 0
         while True:
-            self.get_torrent_list()
-            for i in range(0, int(torrent_time_cycle / filter_time_cycle)):
-                self.filter()
-                time.sleep(filter_time_cycle)
+            if t() > i_cycle_torrent * torrent_time_cycle - 1:
+                self.get_torrent_list()
+                i_cycle_torrent += 1
+            if clear_time_cycle and t() > (i_cycle_clear + 1) * clear_time_cycle:
+                self.clear_banned_ip_list()
+                i_cycle_clear += 1
+            self.filter()
+            i_cycle_filter += 1
+            t_cycle_remaining = i_cycle_filter * filter_time_cycle - t()
+            if t_cycle_remaining > 0:
+                time.sleep(t_cycle_remaining)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Ban Xunlei peers in qBittorrent connections.',
-                                     epilog='eg: python3 filter.py -u localhost -p 8080 -a 300 -b 10')
+                                     epilog='eg: python3 filterSamThenBCH.py -u localhost -p 8080 -a 300 -b 10')
     parser.add_argument('-u', default='localhost',
                         help='url of the service without \'http://\' or \'https://\'')
     parser.add_argument('-p', default=8080, type=int,
@@ -147,7 +174,9 @@ if __name__ == '__main__':
                         help='path to the string-filter file. Each line contains a string. Default=None')
     parser.add_argument('-s', default=False, action="store_true",
                         help='use https protocol. Default=http')
-    
+    parser.add_argument('-c', default=None, type=float,
+                        help='time interval to clear torrents list in hours (decimal OK). Default=None')
+
     config = parser.parse_args()
-    f = ClientFilter(url=config.u, port=config.p, file=config.f, https=config.s)
-    f.start(torrent_time_cycle=config.a, filter_time_cycle=config.b)
+    f = ClientFilter(url=config.u, port=config.p, file=config.f, https=config.s, )
+    f.start(torrent_time_cycle=config.a, filter_time_cycle=config.b, clear_hours=config.c)
