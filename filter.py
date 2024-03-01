@@ -2,15 +2,13 @@
 This script is designed to ban leeches who do not upload
 their files, such as '-XL0012-' aka '迅雷' in Chinese.
 
-The API documents referred in this URL:
+The API documents referred to in this URL:
 https://github.com/qbittorrent/qBittorrent/wiki/Web-API-Documentation#set-application-preferences
 """
 
 from urllib import request
 import json
-import sys
 import time
-import datetime
 import argparse
 import ssl
 
@@ -56,7 +54,6 @@ def _post_url(url, content):
 class ClientFilter:
 
     def __init__(self, url='localhost', port=8080, file=None, https=False, unconditional=False):
-        self.torrents_to_check = {}
         if https:
             self.url_port = "https://" + url + ":" + str(port)
         else:
@@ -64,7 +61,9 @@ class ClientFilter:
         self.unconditional = False
         if unconditional:
             self.unconditional = True
+        self.torrents_to_check = {}
         self.string_list = []
+        self.n_banned = None
         self.config_json = None
         if file:
             try:
@@ -89,22 +88,26 @@ class ClientFilter:
         for torrent_hash in torrents.keys():
             if torrents[torrent_hash]['num_leechs'] > 0 or self.unconditional:
                 self.torrents_to_check[torrent_hash] = torrents[torrent_hash]
-        pass
-
+                
+    def get_config(self):
+        return json.loads(_get_url(self.url_port + "/api/v2/app/preferences"))
+    
+    def post_config(self,config):
+        _post_url(self.url_port + "/api/v2/app/setPreferences", 'json=' + json.dumps(config))
+        
     def clear_banned_ip_list(self):
-        self.config_json = json.loads(_get_url(self.url_port + "/api/v2/app/preferences"))
+        self.config_json = self.get_config()
         banned_ip_str = ''
         self.config_json['banned_IPs'] = banned_ip_str
-        _post_url(self.url_port + "/api/v2/app/setPreferences", 'json=' + json.dumps(self.config_json))
+        self.post_config(self.config_json)
         print('Cleared all banned IPs from qBittorrent')
 
     def filter(self):
         """
         Get all the connected peers using torrent hash list and ban the matched peer.
         """
-        self.config_json = json.loads(_get_url(self.url_port + "/api/v2/app/preferences"))
+        self.config_json = self.get_config()
         banned_ip_str = self.config_json["banned_IPs"]
-        
         active_torrents = json.loads(_get_url(self.url_port + "/api/v2/torrents/info?filter=active"))
         for torrent in active_torrents:
             if torrent['hash'] in self.torrents_to_check:
@@ -114,12 +117,11 @@ class ClientFilter:
                         if xl in peers[ip_port]['client']:
                             banned_ip_str += '\n'
                             banned_ip_str += peers[ip_port]['ip']
-                            time_str = time.strftime("[%Y-%m-%d %H:%M:%S] ", time.localtime())
-                            print(str.encode(time_str + 'banned ' + peers[ip_port]['ip']
-                                  + ' client name:' + peers[ip_port]['client']))
-
+                            time_str = time.strftime("[%Y-%m-%d %H:%M:%S]", time.localtime())
+                            self.n_banned += 1
+                            print('{} Total: {} banned {} client name: {} '.format(time_str, self.n_banned, peers[ip_port]['ip'], peers[ip_port]['client']))
             self.config_json['banned_IPs'] = banned_ip_str
-            _post_url(self.url_port + "/api/v2/app/setPreferences", 'json=' + json.dumps(self.config_json))
+            self.post_config(self.config_json)
 
     def _get_peers_list(self, torrent_hash):
         server_url = self.url_port + "/api/v2/sync/torrentPeers?rid=0&hash=" + torrent_hash
@@ -146,6 +148,21 @@ class ClientFilter:
             print('clear time interval is {} hr'.format(round(clear_hours,digits)))
         if self.unconditional:
             print('-x is set: blocks clients regardless of leeching status')
+        print()
+        self.config_json = self.get_config()
+        banned_ip_str = self.config_json["banned_IPs"]
+        if banned_ip_str =='':
+            self.n_banned = 0
+        else:
+            self.n_banned = len(banned_ip_str.split('\n'))
+        if self.n_banned > 1:
+            entries_str = 'entries'
+            if self.n_banned == 1:
+                entries_str == 'entry'
+            print('\nBanned IPs list has {} {}\n'.format(self.n_banned,entries_str))
+            self.config_json['banned_IPs'] = banned_ip_str
+
+
         i_cycle_clear = 0
         i_cycle_filter = 0
         while True:

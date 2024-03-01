@@ -91,14 +91,6 @@ if __name__ == '__main__':
                             help='port number. Default=8080')
         parser.add_argument('-s', default=False, action="store_true",
                             help='use https protocol. Default=http')
-        parser.add_argument('-t', default=300, type=int,
-                            help='This flag has no meaning for this utility')
-        parser.add_argument('-f', default=None, type=str,
-                            help='This flag has no meaning for this utility')
-        parser.add_argument('-c', default=None, type=float,
-                            help='This flag has no meaning for this utility')
-        parser.add_argument('-x', default=None, type=float,
-                            help='This flag has no meaning for this utility')
 
         config = parser.parse_args()
         f = ClearBannedIPsList(url=config.u, port=config.p, https=config.s)
